@@ -1,0 +1,611 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Team Member HTML Generator</title>
+<style>
+  :root {
+    --bg: #0b1020;
+    --panel: #121933;
+    --panel-2: #18213f;
+    --text: #eef2ff;
+    --muted: #aeb8d4;
+    --accent: #4FA3FF;
+    --accent-2: #1C4FA3;
+    --border: rgba(255,255,255,0.12);
+    --ok: #5BC44A;
+    --warn: #f5c84c;
+    --danger: #e05050;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+    background: linear-gradient(180deg, #08101d 0%, #0f1730 100%);
+    color: var(--text);
+  }
+  .app {
+    display: grid;
+    grid-template-columns: 430px 1fr;
+    min-height: 100vh;
+  }
+  .sidebar {
+    border-right: 1px solid var(--border);
+    background: rgba(8, 13, 28, 0.92);
+    padding: 22px 20px 28px;
+    overflow: auto;
+  }
+  .content {
+    padding: 20px;
+    overflow: auto;
+  }
+  h1 {
+    margin: 0 0 8px;
+    font-size: 26px;
+    line-height: 1.1;
+  }
+  .intro {
+    color: var(--muted);
+    margin: 0 0 20px;
+    font-size: 14px;
+    line-height: 1.5;
+  }
+  .group {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 16px;
+    margin-bottom: 14px;
+  }
+  .group h2 {
+    margin: 0 0 12px;
+    font-size: 15px;
+    color: var(--accent);
+    letter-spacing: 0.02em;
+  }
+  .grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+  .field {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-bottom: 12px;
+  }
+  .field.full { grid-column: 1 / -1; }
+  label {
+    font-size: 12px;
+    color: var(--muted);
+    font-weight: 600;
+  }
+  input, textarea, select {
+    width: 100%;
+    background: var(--panel-2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    color: var(--text);
+    padding: 11px 12px;
+    font: inherit;
+  }
+  textarea { min-height: 94px; resize: vertical; }
+  input[type="file"] {
+    padding: 10px;
+  }
+  .hint {
+    color: var(--muted);
+    font-size: 12px;
+    line-height: 1.4;
+  }
+  .actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 12px;
+  }
+  button {
+    appearance: none;
+    border: 0;
+    border-radius: 10px;
+    padding: 11px 14px;
+    background: var(--accent);
+    color: white;
+    font-weight: 700;
+    cursor: pointer;
+  }
+  button.secondary {
+    background: #233053;
+  }
+  button.ghost {
+    background: transparent;
+    border: 1px solid var(--border);
+  }
+  .status {
+    margin-top: 10px;
+    min-height: 20px;
+    font-size: 13px;
+    color: var(--muted);
+  }
+  .status.ok { color: var(--ok); }
+  .status.warn { color: var(--warn); }
+  .status.error { color: var(--danger); }
+  .topbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 14px;
+  }
+  .topbar .title {
+    font-size: 20px;
+    font-weight: 700;
+  }
+  .preview-wrap {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    overflow: hidden;
+    min-height: calc(100vh - 70px);
+  }
+  iframe {
+    width: 100%;
+    height: calc(100vh - 70px);
+    border: 0;
+    background: white;
+  }
+  .photo-preview {
+    width: 130px;
+    aspect-ratio: 3 / 4;
+    border: 1px dashed var(--border);
+    border-radius: 12px;
+    display: grid;
+    place-items: center;
+    overflow: hidden;
+    background: var(--panel-2);
+    color: var(--muted);
+    font-size: 12px;
+  }
+  .photo-preview img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  .small {
+    font-size: 12px;
+  }
+  @media (max-width: 1100px) {
+    .app { grid-template-columns: 1fr; }
+    .sidebar { border-right: 0; border-bottom: 1px solid var(--border); max-height: none; }
+    iframe, .preview-wrap { min-height: 70vh; height: 70vh; }
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <aside class="sidebar">
+    <h1>Team Member HTML Generator</h1>
+    <p class="intro">Fill in the fields, upload a photo, preview the result, then download a finished self-contained HTML file.</p>
+
+    <div class="group">
+      <h2>Select Template</h2>
+      <div class="field">
+        <label for="templateSelect"></label>
+        <select id="templateSelect">
+          <option value="Atlas_IUL_Template.html">IUL Template</option>
+          <option value="Atlas_Annuity_Template.html">Annuity Template</option>
+        </select>
+      </div>
+    </div>
+
+
+    
+    <div class="group">
+      <h2>Agent Details</h2>
+      <div class="grid">
+        <div class="field full">
+          <label for="name">Full Name *</label>
+          <input id="name" type="text" placeholder="first and last name">
+        </div>
+        <div class="field full">
+          <label for="titleField">Title / Designation *</label>
+          <input id="titleField" type="text" placeholder="your specialty">
+        </div>
+        <div class="field full">
+          <label for="license">State Insurance License *</label>
+          <input id="license" type="text" placeholder="your license #">
+        </div>
+        <div class="field">
+          <label for="eoCarrier">E&amp;O Carrier *</label>
+          <input id="eoCarrier" type="text" placeholder="your E&amp;O carrier">
+        </div>
+        <div class="field">
+          <label for="eoPolicy">E&amp;O Policy # *</label>
+          <input id="eoPolicy" type="text" placeholder="596427449">
+        </div>
+        <div class="field">
+          <label for="npn">NPN *</label>
+          <input id="npn" type="text" placeholder="npn #">
+        </div>
+        <div class="field">
+          <label for="certifications">BBB Rating / Certifications</label>
+          <input id="certifications" type="text" placeholder="e.g. A+ BBB · CLTC · FIC">
+        </div>
+      </div>
+    </div>
+
+    <div class="group">
+      <h2>Contact</h2>
+      <div class="grid">
+        <div class="field">
+          <label for="phone">Phone *</label>
+          <input id="phone" type="text" placeholder="your contact phone #">
+        </div>
+        <div class="field">
+          <label for="email">Email *</label>
+          <input id="email" type="email" placeholder="your contact email">
+        </div>
+        <div class="field full">
+          <label for="website">Website</label>
+          <input id="website" type="url" placeholder="your agent website">
+        </div>
+      </div>
+    </div>
+
+    <div class="group">
+      <h2>Photo</h2>
+      <div class="field">
+        <label for="photo">Upload Photo *</label>
+        <input id="photo" type="file" accept="image/png,image/jpeg,image/jpg,image/webp">
+      </div>
+      <div class="photo-preview" id="photoPreview">No photo</div>
+      <div class="hint" style="margin-top:10px;">The photo is embedded directly into the generated HTML, so the output file stays portable.</div>
+    </div>
+
+    <div class="group">
+      <h2>Carriers</h2>
+      <div class="field">
+        <label for="carriers">One per line</label>
+        <textarea id="carriers" placeholder="list your main carriers"></textarea>
+      </div>
+      <div class="hint">The generator does not modify the carriers section in profile-template.html.</div>
+    </div>
+
+    <div class="group">
+      <h2>Generate</h2>
+      <div class="actions">
+        <button type="button" id="previewBtn">Preview</button>
+        <button type="button" class="secondary" id="downloadBtn">Download HTML</button>
+        <button type="button" class="ghost" id="clearBtn">Clear Form</button>
+      </div>
+      <div class="status" id="status"></div>
+    </div>
+  </aside>
+
+  <main class="content">
+    <div class="topbar">
+      <div class="title">Preview</div>
+      <div class="small" style="color: var(--muted);">Generated from local selected template</div>
+    </div>
+    <div class="preview-wrap">
+      <iframe id="previewFrame" title="Generated profile preview"></iframe>
+    </div>
+  </main>
+</div>
+
+<script>
+let TEMPLATE_FILENAME = "Atlas_IUL_Template.html";
+let externalTemplateHtml = "";
+const SAMPLE_JSON = {
+  "name": "Meg Blair",
+  "title": "IUL Specialist",
+  "license": "21500517 — Massachusetts",
+  "eo_carrier": "Continental Casualty Company",
+  "eo_policy": "596427449",
+  "npn": "21500517",
+  "phone": "203-241-4927",
+  "email": "mblairfflinsurance@gmail.com",
+  "website": "https://mblair.myverifiedadvisor.com",
+  "photo_filename": "Meg.jpg",
+  "carriers": ["National Life Group", "F&G", "Mutual of Omaha"]
+};
+
+let uploadedPhotoDataUri = "";
+
+const el = (id) => document.getElementById(id);
+
+function setStatus(message, type = "") {
+  const node = el("status");
+  node.className = "status" + (type ? " " + type : "");
+  node.textContent = message;
+}
+
+function escapeHtml(value) {
+  return String(value ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
+function slugify(value) {
+  return String(value || "team-member")
+    .normalize("NFKD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    || "team-member";
+}
+
+function normalizeUrl(url) {
+  const raw = String(url || "").trim();
+  if (!raw) return "";
+  if (/^https?:\/\//i.test(raw)) return raw;
+  return "https://" + raw;
+}
+
+function getCarrierList() {
+  return el("carriers").value
+    .split(/\r?\n/)
+    .map(v => v.trim())
+    .filter(Boolean);
+}
+
+function collectData() {
+  return {
+    name: el("name").value.trim(),
+    title: el("titleField").value.trim(),
+    license: el("license").value.trim(),
+    eo_carrier: el("eoCarrier").value.trim(),
+    eo_policy: el("eoPolicy").value.trim(),
+    npn: el("npn").value.trim(),
+    certifications: el("certifications").value.trim(),
+    phone: el("phone").value.trim(),
+    email: el("email").value.trim(),
+    website: normalizeUrl(el("website").value),
+    carriers: getCarrierList(),
+    photo_data_uri: uploadedPhotoDataUri
+  };
+}
+
+function validateData(data) {
+  const required = [
+    ["name", "Full Name"],
+    ["title", "Title / Designation"],
+    ["license", "State Insurance License"],
+    ["eo_carrier", "E&O Carrier"],
+    ["eo_policy", "E&O Policy #"],
+    ["npn", "NPN"],
+    ["phone", "Phone"],
+    ["email", "Email"]
+  ];
+  for (const [key, label] of required) {
+    if (!data[key]) return label + " is required.";
+  }
+  if (!data.photo_data_uri) return "Please upload a photo.";
+  if (data.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email)) return "Please enter a valid email address.";
+  if (data.website) {
+    try { new URL(data.website); } catch (err) { return "Please enter a valid website URL."; }
+  }
+  return "";
+}
+
+function fillFormFromObject(data) {
+  el("name").value = data.name || "";
+  el("titleField").value = data.title || "";
+  el("license").value = data.license || "";
+  el("eoCarrier").value = data.eo_carrier || "";
+  el("eoPolicy").value = data.eo_policy || "";
+  el("npn").value = data.npn || "";
+  el("phone").value = data.phone || "";
+  el("email").value = data.email || "";
+  el("website").value = data.website || "";
+  el("certifications").value = data.certifications || "";
+  el("carriers").value = Array.isArray(data.carriers) ? data.carriers.join("\n") : "";
+}
+
+function photoMarkup(dataUri, alt) {
+  if (!dataUri) return "[Agent Photo]";
+  return `<img src="${dataUri}" alt="${escapeHtml(alt)}" style="width:100%;height:100%;object-fit:cover;border-radius:6px;display:block;">`;
+}
+
+function buildContactMarkup(data) {
+  const parts = [];
+  if (data.phone) parts.push(`<a href="tel:${escapeHtml(data.phone)}" style="color:inherit;text-decoration:none;">${escapeHtml(data.phone)}</a>`);
+  if (data.email) parts.push(`<a href="mailto:${escapeHtml(data.email)}" style="color:inherit;text-decoration:none;">${escapeHtml(data.email)}</a>`);
+  let html = parts.join(" &nbsp;·&nbsp; ");
+  if (data.website) {
+    html += `<div style="margin-top:8px;font-size:12px;letter-spacing:0.02em;"><a href="${escapeHtml(data.website)}" target="_blank" rel="noopener" style="color:inherit;text-decoration:none;">${escapeHtml(data.website)}</a></div>`;
+  }
+  return html;
+}
+
+
+
+async function tryLoadTemplateFromFolder() {
+  try {
+    const response = await fetch(TEMPLATE_FILENAME, { cache: "no-store" });
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    externalTemplateHtml = await response.text();
+    setStatus(`Template loaded: ${TEMPLATE_FILENAME}.`, "ok");
+    return true;
+  } catch (error) {
+    setStatus(`Could not load ${TEMPLATE_FILENAME}. Use the GitHub Pages URL or run start-server.bat for local testing.`, "warn");
+    return false;
+  }
+}
+
+function templateLooksUsable(text) {
+  const raw = String(text || "").trim();
+  return raw.length > 100 && /<html[\s>]/i.test(raw);
+}
+
+async function ensureTemplateLoaded() {
+  if (templateLooksUsable(externalTemplateHtml)) return externalTemplateHtml;
+  await tryLoadTemplateFromFolder();
+  if (templateLooksUsable(externalTemplateHtml)) return externalTemplateHtml;
+  setStatus(`Template not loaded. Make sure ${TEMPLATE_FILENAME} is in the same folder as this generator.`, "error");
+  return "";
+}
+
+function replaceTextPlaceholders(root, replacements) {
+  const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, null);
+  const nodes = [];
+  while (walker.nextNode()) nodes.push(walker.currentNode);
+  for (const node of nodes) {
+    let value = node.nodeValue || "";
+    for (const [from, to] of replacements) value = value.split(from).join(to);
+    node.nodeValue = value;
+  }
+}
+
+async function buildHtml(data) {
+  const templateHtml = await ensureTemplateLoaded();
+  if (!templateHtml) return "";
+  const parser = new DOMParser();
+  const doc = parser.parseFromString(templateHtml, "text/html");
+
+  doc.title = `${data.name || "Agent"} — Agent Profile`;
+
+  const agentPhoto = doc.querySelector(".agent-photo");
+  if (agentPhoto) {
+    agentPhoto.innerHTML = photoMarkup(data.photo_data_uri, data.name || "Agent photo");
+  }
+
+  const agentName = doc.querySelector(".agent-name");
+  if (agentName) agentName.textContent = data.name || "";
+
+  const agentTitle = doc.querySelector(".agent-title");
+  if (agentTitle) agentTitle.textContent = data.title || "";
+
+  const credValues = Array.from(doc.querySelectorAll(".cred-value"));
+  if (credValues[0]) credValues[0].textContent = data.license || "";
+  if (credValues[1]) credValues[1].textContent = [data.eo_carrier, data.eo_policy].filter(Boolean).join(" — ");
+  if (credValues[2]) credValues[2].textContent = data.npn || "";
+  if (credValues[3]) {
+    credValues[3].textContent = data.certifications || (data.website ? new URL(data.website).hostname.replace(/^www\./i, "") : "");
+  }
+
+  const contactBar = doc.querySelector(".contact-bar");
+  if (contactBar) {
+    contactBar.innerHTML = buildContactMarkup(data);
+  }
+
+  // Also replace any plain-text placeholders anywhere in the template.
+  replaceTextPlaceholders(doc.body, [
+    ["[Phone]", data.phone || ""],
+    ["[Email]", data.email || ""],
+    ["[Website]", data.website || ""]
+  ]);
+
+  // If the template already contains tel:/mailto: links, update them too.
+  Array.from(doc.querySelectorAll('a[href^="tel:"]')).forEach(a => {
+    a.setAttribute("href", `tel:${data.phone || ""}`);
+    a.textContent = data.phone || "";
+  });
+  Array.from(doc.querySelectorAll('a[href^="mailto:"]')).forEach(a => {
+    a.setAttribute("href", `mailto:${data.email || ""}`);
+    a.textContent = data.email || "";
+  });
+
+  // Fallback for footer/contact areas that contain plain text instead of placeholders.
+  const footerCandidates = Array.from(doc.querySelectorAll("footer, .footer, .contact, .contact-bar, .bottom-bar, .bottom-contact"));
+  footerCandidates.forEach(node => {
+    const html = node.innerHTML || "";
+    if (/\bPhone\b/i.test(html) || /\bEmail\b/i.test(html)) {
+      node.innerHTML = html
+        .replace(/\[Phone\]/g, data.phone || "")
+        .replace(/\[Email\]/g, data.email || "")
+        .replace(/\[Website\]/g, data.website || "")
+        .replace(/>\s*Phone\s*</g, `>${data.phone || ""}<`)
+        .replace(/>\s*Email\s*</g, `>${data.email || ""}<`)
+        .replace(/>\s*Website\s*</g, `>${data.website || ""}<`);
+    }
+  });
+
+  // Remove generator-only artifacts if any appeared in the template.
+
+  const editBanner = doc.querySelector(".edit-banner");
+  if (editBanner) editBanner.remove();
+
+  return "<!DOCTYPE html>\n" + doc.documentElement.outerHTML;
+}
+
+async function renderPreview() {
+  const data = collectData();
+  const error = validateData(data);
+  if (error) {
+    setStatus(error, "error");
+    return "";
+  }
+  const html = await buildHtml(data);
+  el("previewFrame").srcdoc = html;
+  setStatus("Preview updated.", "ok");
+  return html;
+}
+
+async function downloadHtml() {
+  const html = await renderPreview();
+  if (!html) return;
+  const filename = `${slugify(el("name").value)}.html`;
+  const blob = new Blob([html], { type: "text/html;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+  setStatus(`Downloaded ${filename}`, "ok");
+}
+
+function clearForm() {
+  document.querySelectorAll("input[type='text'], input[type='email'], input[type='url'], textarea").forEach(node => node.value = "");
+  el("photo").value = "";
+  uploadedPhotoDataUri = "";
+  el("photoPreview").innerHTML = "No photo";
+  el("previewFrame").srcdoc = "";
+  setStatus("Form cleared.", "warn");
+}
+
+
+el("photo").addEventListener("change", async (event) => {
+  const file = event.target.files && event.target.files[0];
+  if (!file) return;
+  if (!/^image\/(png|jpeg|jpg|webp)$/i.test(file.type)) {
+    setStatus("Please upload a PNG, JPG, JPEG, or WEBP image.", "error");
+    event.target.value = "";
+    return;
+  }
+  const reader = new FileReader();
+  reader.onload = () => {
+    uploadedPhotoDataUri = String(reader.result || "");
+    el("photoPreview").innerHTML = `<img src="${uploadedPhotoDataUri}" alt="Photo preview">`;
+    setStatus("Photo loaded.", "ok");
+  };
+  reader.onerror = () => setStatus("Could not read the selected photo.", "error");
+  reader.readAsDataURL(file);
+});
+
+
+el("templateSelect").addEventListener("change", async (event) => {
+  TEMPLATE_FILENAME = event.target.value || "Atlas_IUL_Template.html";
+  externalTemplateHtml = "";
+  await tryLoadTemplateFromFolder();
+  el("previewFrame").srcdoc = "";
+});
+
+tryLoadTemplateFromFolder();
+
+el("previewBtn").addEventListener("click", renderPreview);
+el("downloadBtn").addEventListener("click", downloadHtml);
+el("clearBtn").addEventListener("click", clearForm);
+
+// Preload the sample JSON in the paste box for convenience.
+</script>
+</body>
+</html>
